@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universities and Departments</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>Select University, Department, and Specialization</h1>
+  <form id="selectionForm">
+    <label for="university">University:</label>
+    <select id="university" name="university">
+      <option value="kabulUniversity">Kabul University</option>
+      <option value="kabulPolytechnicUniversity">Kabul Polytechnic University</option>
+      <option value="kabulMedicalUniversity">Kabul Medical University</option>
+    </select>
+    <label for="department">Department:</label>
+    <select id="department" name="department">
+      <!-- Departments will be populated based on university selection -->
+    </select>
+    <label for="specialization">Specialization:</label>
+    <select id="specialization" name="specialization">
+      <!-- Specializations will be populated based on department selection -->
+    </select>
+  </form>
+  <table id="studentsInfo">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Student information will be populated here -->
+    </tbody>
+  </table>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', fetchDatas);
+
+    function fetchDatas() {
+      fetch('/api/data')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('university').addEventListener('change', function() {
+            const university = this.value;
+            const departmentSelect = document.getElementById('department');
+            departmentSelect.innerHTML = '';
+
+            if (university) {
+              data.departments[university].forEach(department => {
+                const option = document.createElement('option');
+                option.value = department;
+                option.textContent = department;
+                departmentSelect.appendChild(option);
+              });
+            }
+          });
+
+          document.getElementById('department').addEventListener('change', function() {
+            const university = document.getElementById('university').value;
+            const department = this.value;
+            const specializationSelect = document.getElementById('specialization');
+            specializationSelect.innerHTML = '';
+
+            if (university && department) {
+              data.specializations[university][department].forEach(specialization => {
+                const option = document.createElement('option');
+                option.value = specialization;
+                option.textContent = specialization;
+                specializationSelect.appendChild(option);
+              });
+            }
+          });
+
+          document.getElementById('selectionForm').addEventListener('change', function() {
+            const university = document.getElementById('university').value;
+            const department = document.getElementById('department').value;
+            const specialization = document.getElementById('specialization').value;
+            const studentsInfo = document.getElementById('studentsInfo').querySelector('tbody');
+            studentsInfo.innerHTML = '';
+
+            if (university && department && specialization) {
+              if (data.students[specialization]) {
+                data.students[specialization].forEach(student => {
+                  const row = document.createElement('tr');
+                  const idCell = document.createElement('td');
+                  const nameCell = document.createElement('td');
+                  const emailCell = document.createElement('td');
+                  idCell.textContent = student.id;
+                  nameCell.textContent = student.name;
+                  emailCell.textContent = student.email;
+                  row.appendChild(idCell);
+                  row.appendChild(nameCell);
+                  row.appendChild(emailCell);
+                  studentsInfo.appendChild(row);
+                });
+              }
+            }
+          });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    }
+  </script>
+</body>
+</html>
